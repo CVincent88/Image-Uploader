@@ -45,16 +45,19 @@ export default function Index() {
       }
     }
 
-    try {
-      const res = await fetch("http://192.168.0.157:3000/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+    const res = await fetch("http://192.168.0.157:3000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await res.json();
+    const text = await res.text();
+    console.log("Raw response text:", text);
+
+    try {
+      const data = JSON.parse(text);
       console.log("Upload:", data);
-    } catch (e) {
-      console.log("Upload failed", e);
+    } catch (error) {
+      console.error("Failed to parse JSON:", error);
     }
   };
 
