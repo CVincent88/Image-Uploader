@@ -14,7 +14,7 @@ A full-stack image uploader application built with React Native (Expo) for the f
 - 🖥️ **Node.js/Express Backend**
   - Receives image uploads via a REST API
   - Handles multipart form data using `formidable`
-  - Uploads images to AWS S3 (or compatible storage)
+  - Uploads images to AWS S3
 
 ---
 
