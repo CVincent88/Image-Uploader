@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { StyleSheet, View, Dimensions, FlatList, Image, SafeAreaView, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Dimensions, FlatList, Image, SafeAreaView, ActivityIndicator, Text } from "react-native";
 
 // Placeholder image shown when no images are selected
 const placeHolderImage = require("@/assets/images/background-image.png");
@@ -16,6 +16,8 @@ export default function Index() {
   // State to store selected image assets
   const [selectedAssets, setSelectedAssets] = useState<ImagePicker.ImagePickerAsset[] | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
 
   // Opens the image picker and updates state with selected images
   const pickImageAsync = async () => {
@@ -34,11 +36,16 @@ export default function Index() {
   // Uploads selected images to the backend server
   const uploadImage = async () => {
     setIsLoading(true);
-    if (!selectedAssets?.length) return;
+    setStatusMessage(null); // Clear previous messages
+
+    if (!selectedAssets?.length) {
+      setIsLoading(false);
+      setStatusMessage("No images selected.");
+      return;
+    }
 
     const formData = new FormData();
     for (const asset of selectedAssets) {
-      // Append each image file to the form data
       // @ts-expect-error: special react native format for form data
       formData.append("file", {
         uri: asset.uri,
@@ -46,32 +53,39 @@ export default function Index() {
         type: asset.mimeType,
       });
 
-      // Optionally append EXIF data if present
       if (asset.exif) {
         formData.append("exif", JSON.stringify(asset.exif));
       }
     }
 
-    // Send POST request to backend API
-    const res = await fetch(`http://${ipAddress}:3000/api/upload`, {
-      method: "POST",
-      body: formData,
-    });
-
-    // Log raw response for debugging
-    const text = await res.text();
-    console.log("Raw response text:", text);
-
     try {
-      // Attempt to parse JSON response
+      const res = await fetch(`http://${ipAddress}:3000/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const text = await res.text();
+      console.log("Raw response text:", text);
+
       const data = JSON.parse(text);
-      console.log("Upload:", data);
+
+      if (data.success) {
+        setStatusMessage("✅ Upload successful!");
+        setTimeout(() => {
+          setStatusMessage(null);
+        }, 3000);
+        setSelectedAssets(undefined); // Clear selected images
+      } else {
+        setStatusMessage("⚠️ Upload failed. Try again.");
+        setTimeout(() => {
+          setStatusMessage(null);
+        }, 3000);
+      }
     } catch (error) {
-      console.error("Failed to parse JSON:", error);
+      console.error("Upload error:", error);
+      setStatusMessage("❌ Error during upload. Check server.");
     } finally {
       setIsLoading(false);
-      // Clear selected assets after upload
-      setSelectedAssets(undefined);
     }
   };
 
@@ -99,6 +113,11 @@ export default function Index() {
         }
       </View>
       {isLoading && <ActivityIndicator size="large" color="#ffffff" />}
+      {statusMessage && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ color: "#fff", textAlign: "center" }}>{statusMessage}</Text>
+        </View>
+      )}
       {!isLoading && (
         <View style={styles.footerContainer}>
           {/* Button to open image picker */}
