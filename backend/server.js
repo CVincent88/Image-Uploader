@@ -18,7 +18,7 @@ app.use(cors());
 
 // File upload endpoint using formidable to parse incoming form data
 app.post("/api/upload", (req, res) => {
-  const form = formidable();  
+  const form = formidable();
 
   // Parse the incoming request containing the form data
   form.parse(req, async (err, fields, files) => {
@@ -40,34 +40,33 @@ app.post("/api/upload", (req, res) => {
     const results = [];
 
     // Iterate over each uploaded file and upload to S3
-    for (const file of uploadedFiles) {
-      // Validate file data
-      if (!file.filepath || !file.originalFilename || !file.mimetype) {
-        return res.status(400).json({ error: "Invalid file data", file });
-      }
+    try {
+      for (const file of uploadedFiles) {
+        if (!file.filepath || !file.originalFilename || !file.mimetype) {
+          return res.status(400).json({ error: "Invalid file data", file });
+        }
 
-      const fileStream = fs.createReadStream(file.filepath);
-      const fileName = `${Date.now()}-${file.originalFilename}`;
+        const fileStream = fs.createReadStream(file.filepath);
+        const fileName = `${Date.now()}-${file.originalFilename}`;
 
-      // S3 upload parameters
-      const uploadParams = {
-        Bucket: process.env.S3_BUCKET,
-        Key: fileName,
-        Body: fileStream,
-        ContentType: file.mimetype,
-      };
+        const uploadParams = {
+          Bucket: process.env.S3_BUCKET,
+          Key: fileName,
+          Body: fileStream,
+          ContentType: file.mimetype,
+        };
 
-      try {
-        // Upload the file to S3
         const uploadResponse = await s3.send(new PutObjectCommand(uploadParams));
         results.push({ fileName, uploadResponse });
-      } catch (e) {
-        console.error("Upload failed:", e);
-        return res.status(500).json({ error: e.message });
       }
+
+      res.status(200).json({ uploaded: results, success: true });
+
+    } catch (e) {
+      console.error("Upload failed:", e);
+      res.status(500).json({ error: e.message, success: false });
     }
 
-    res.status(200).json({ uploaded: results });
   });
 });
 
