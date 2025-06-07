@@ -33,7 +33,11 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      ["expo-image-picker",
+      {
+        "photosPermission": "The app accesses your photos to let you uplaod them on a AWS S3 bucket."
+      }]
     ],
     "experiments": {
       "typedRoutes": true
