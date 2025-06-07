@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { StyleSheet, View, Dimensions, FlatList, Image, SafeAreaView } from "react-native";
+import { StyleSheet, View, Dimensions, FlatList, Image, SafeAreaView, ActivityIndicator } from "react-native";
 
 // Placeholder image shown when no images are selected
 const placeHolderImage = require("@/assets/images/background-image.png");
@@ -15,6 +15,7 @@ const imageSize = (screenWidth - (numColumns + 1) * imageMargin) / numColumns;
 export default function Index() {
   // State to store selected image assets
   const [selectedAssets, setSelectedAssets] = useState<ImagePicker.ImagePickerAsset[] | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Opens the image picker and updates state with selected images
   const pickImageAsync = async () => {
@@ -32,6 +33,7 @@ export default function Index() {
 
   // Uploads selected images to the backend server
   const uploadImage = async () => {
+    setIsLoading(true);
     if (!selectedAssets?.length) return;
 
     const formData = new FormData();
@@ -66,6 +68,10 @@ export default function Index() {
       console.log("Upload:", data);
     } catch (error) {
       console.error("Failed to parse JSON:", error);
+    } finally {
+      setIsLoading(false);
+      // Clear selected assets after upload
+      setSelectedAssets(undefined);
     }
   };
 
@@ -92,14 +98,17 @@ export default function Index() {
           )
         }
       </View>
-      <View style={styles.footerContainer}>
-        {/* Button to open image picker */}
-        <Button label="Choose some photos" theme="primary" onPress={pickImageAsync} />
-        {/* Show upload button only if images are selected */}
-        {selectedAssets?.length &&
-          <Button label={`upload ${selectedAssets.length > 1 ? "these photos" : "this photo"} `} onPress={uploadImage} />
-        }
-      </View>
+      {isLoading && <ActivityIndicator size="large" color="#ffffff" />}
+      {!isLoading && (
+        <View style={styles.footerContainer}>
+          {/* Button to open image picker */}
+          <Button label="Choose some photos" theme="primary" onPress={pickImageAsync} />
+          {/* Show upload button only if images are selected */}
+          {selectedAssets?.length &&
+            <Button label={`upload ${selectedAssets.length > 1 ? "these photos" : "this photo"} `} onPress={uploadImage} />
+          }
+        </View>
+      )}
     </SafeAreaView>
   );
 }
