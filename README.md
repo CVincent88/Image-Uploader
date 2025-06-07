@@ -52,6 +52,7 @@ Image-Uploader/
   ```sh
   cd backend
   npm install
+  ```
 
 
 2. **Configure environment variables:**
@@ -64,19 +65,25 @@ S3_BUCKET=your-bucket-name
 PORT=3000
 
 3. **Start the backend server:**
+  ```
   npm start
+  ```
 
 
 ### 1. Frontend Setup
 
 1. **Install dependencies:**
+  ```
   cd ImageUploaderExpo
   npm install
+  ```
 
 2. **Replace IP Address:**
   In ImageUploaderExpo/app/(tabs)/index.tsx -> add your ip address as Expo wil not work with localhost
 
 3. **Start the Expo app:**
+  ```
   expo start
+  ```
 
 
